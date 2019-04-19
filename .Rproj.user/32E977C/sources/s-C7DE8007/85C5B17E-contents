@@ -1,0 +1,60 @@
+library(shiny)
+library(tidyverse)
+library(plotly)
+
+
+# Load data
+player <- read_delim("./data/players.txt", delim = ",")
+teams <- read_delim("./data/teams.txt", delim = ",")
+goalie_stats <- read_delim("./data/goalie_stats.txt", delim = ",")
+player_stats <- read_delim("./data/skaters_stats.txt", delim = ",") %>% 
+  mutate(season = as.character(season)) %>% 
+  mutate(season = as.character(str_replace(season, 
+                                           str_sub(season, start = 5, end = 8), 
+                                           paste("/", str_sub(season, start = 7, end = 8), sep = "")
+                                           )
+                              )
+        )
+
+# Get player list  
+player_list <-  player %>% pull("fullName")
+
+# Define UI for application
+ui <- fluidPage(
+   
+   # Application title
+   titlePanel("Old Faithful Geyser Data"),
+   
+   # Sidebar with a slider input for number of bins 
+   sidebarLayout(
+      sidebarPanel(
+         sliderInput("bins",
+                     "Number of bins:",
+                     min = 1,
+                     max = 50,
+                     value = 30)
+      ),
+      
+      # Show a plot of the generated distribution
+      mainPanel(
+         plotOutput("distPlot")
+      )
+   )
+)
+
+# Define server logic required to draw plots
+server <- function(input, output) {
+   
+   output$distPlot <- renderPlot({
+      # generate bins based on input$bins from ui.R
+      x    <- faithful[, 2] 
+      bins <- seq(min(x), max(x), length.out = input$bins + 1)
+      
+      # draw the histogram with the specified number of bins
+      hist(x, breaks = bins, col = 'darkgray', border = 'white')
+   })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+

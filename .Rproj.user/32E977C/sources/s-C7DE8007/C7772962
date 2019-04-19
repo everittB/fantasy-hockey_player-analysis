@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1555694543727.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "C7772962",
+    "lastKnownWriteTime" : 1555699320,
+    "last_content_update" : 1555699320204,
+    "path" : "~/fantasy-hockey_player-analysis/hockey_analysis_app/app.R",
+    "project_path" : "hockey_analysis_app/app.R",
+    "properties" : {
+        "cursorPosition" : "74,36",
+        "scrollLine" : "41"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
