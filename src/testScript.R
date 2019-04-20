@@ -31,3 +31,9 @@ play_plot <- players %>%
     theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45))
 
 ggplotly(play_plot, tooltip = c("colour", "y"))
+
+
+goalie_stats <- players %>% 
+  filter(posType == "Goalie") %>% 
+  left_join(goalie_stats, by = c("playerID" = "playerID")) %>% 
+  mutate(playerID = as.factor(playerID))

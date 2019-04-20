@@ -22,6 +22,12 @@ player_stats <- players %>%
   left_join(player_stats, by = c("playerID" = "playerID")) %>% 
   mutate(playerID = as.factor(playerID))
 
+# Join goalies and their season statistics
+goalie_stats <- players %>% 
+  filter(posType == "Goalie") %>% 
+  left_join(goalie_stats, by = c("playerID" = "playerID")) %>% 
+  mutate(playerID = as.factor(playerID))
+
 
 # Get forwards player list  
 forwards_list <-  players %>% 
@@ -42,47 +48,99 @@ goalie_list <-  players %>%
   as.list()
 
 # Define UI for application
-ui <- fluidPage(
-   
-   # Application title
-   titlePanel("Fantasy Hockey Player Analysis"),
-   
-   # Sidebar with a slider input for number of bins 
+ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
+                 
+  # Create forwards page
+  tabPanel("Forwards",
+   # Page layout
    sidebarLayout(
+     sidebarPanel(
+       # Get user inputs for given page
+       selectInput("forwardPlayers",
+                   label = "Forwards",
+                   choices = forwards_list,
+                   multiple = TRUE)
+                   ),
+       # Show plots in main section
+       mainPanel(plotlyOutput("pts_plot1"))
+    ),
+   value = "Forward"
+  ),
+  
+  # Create defense page
+  tabPanel("Defense",
+   # Page layout
+   sidebarLayout(
+     sidebarPanel(
+       # Get user inputs for given page
+       selectInput("defenseman",
+                   label = "Defenseman",
+                   choices = defense_list,
+                   multiple = TRUE)
+     ),
+     # Show plots in main section
+     mainPanel(plotlyOutput("pts_plot2"))
+   ),
+   value = "Defenseman"
+  ),
+  
+  # Create goalies page
+  tabPanel("Goalies",
+    # Page layout
+    sidebarLayout(
       sidebarPanel(
-         selectInput("forwardPlayers",
-                     label = "Forwards",
-                     choices = forwards_list,
-                     multiple = TRUE)
-      ),
-      
-      # Show a plot of the generated distribution
-      mainPanel(
-         plotlyOutput("forward_pts_plot")
-      )
-   )
+        # Get user inputs for given page
+        selectInput("goalies",
+                    label = "Goalies",
+                    choices = goalie_list,
+                    multiple = TRUE)
+     ),
+     # Show plots in main section
+     mainPanel(plotlyOutput("pts_plot3"))
+   ),
+   value = "Goalie"
+  )
 )
 
-# Define server logic required to draw plots
+
+# Define server logic required to make pages
 server <- function(input, output) {
   
-   selected_players <- reactive(
-     player_stats %>% 
-       filter(fullName %in% input$forwardPlayers)
-   )
+  
+  # Select the players based off the current tab
+  select_players <- function(cur_page){
+    if (cur_page == "Forward"){
+      selected_players <- player_stats %>% 
+        filter(fullName %in% input$forwardPlayers)
+    } else if (cur_page == "Defenseman"){
+      selected_players <- player_stats %>% 
+        filter(fullName %in% input$defenseman)
+    } else{
+      selected_players <- goalie_stats %>% 
+        filter(fullName %in% input$goalies)
+    }
+    return(selected_players)
+  }
+  
+  
+  current_page <- reactive(input$pages)
+  selected_players <- reactive(select_players(current_page()))
+
    
-   output$forward_pts_plot <- renderPlotly(
-     ggplotly(ggplot(data = selected_players(), aes(x=season, y=points, group = playerID, color = fullName)) +
-                geom_point(stat = 'summary', fun.y = sum) +
-                stat_summary(fun.y = sum, geom = "line") +
-                ggtitle("Season Point Totals") +
-                xlab("Season") + 
-                ylab("Points") + 
-                scale_color_brewer("Player", palette = "Spectral") +
-                theme_bw() +
-                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)), 
-              tooltip = c("y", "colour"))
-   )
+  output$pts_plot1 <- output$pts_plot2 <- renderPlotly(
+   ggplotly(ggplot(data = selected_players(), aes(x=season, y=points, group = playerID, color = fullName)) +
+              geom_point(stat = 'summary', fun.y = sum) +
+              stat_summary(fun.y = sum, geom = "line") +
+              ggtitle("Season Point Totals") +
+              xlab("Season") + 
+              ylab("Points") + 
+              scale_color_brewer("Player", palette = "Spectral") +
+              theme_bw() +
+              theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)), 
+            tooltip = c("y", "colour"))
+  )
+
+   # observe(print(current_page()))
 }
 
 # Run the application 
