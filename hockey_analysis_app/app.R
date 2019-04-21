@@ -32,18 +32,21 @@ goalie_stats <- players %>%
 # Get forwards player list  
 forwards_list <-  players %>% 
   filter(posType == "Forward" ) %>% 
+  arrange(fullName) %>% 
   pull(fullName) %>% 
   as.list()
 
 # Get defence player list  
 defense_list <-  players %>% 
   filter(posType == "Defenseman" ) %>% 
+  arrange(fullName) %>%
   pull(fullName) %>% 
   as.list()
 
 # Get goalies list  
 goalie_list <-  players %>% 
   filter(posType == "Goalie" ) %>% 
+  arrange(fullName) %>%
   pull(fullName) %>% 
   as.list()
 
@@ -62,7 +65,9 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            width = "100%")
               ),
       
-      plotlyOutput("pts_plot1")
+      plotlyOutput("pts_plot_fwds"),
+      plotlyOutput("gms_plot_fwds"),
+      plotlyOutput("shot_perc_plot")
     )
   ),
   
@@ -78,7 +83,8 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            width = "100%")
               ),
       
-      plotlyOutput("pts_plot2")
+      plotlyOutput("pts_plot_def"),
+      plotlyOutput("gms_plot_def")
     )
   ),
   
@@ -94,7 +100,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            width = "100%")
       ),
               
-              plotlyOutput("pts_plot3")
+      plotlyOutput("pts_plot3")
     )
   )
 )
@@ -107,38 +113,80 @@ server <- function(input, output) {
   # Select the players based off the current tab
   select_players <- function(cur_page){
     if (cur_page == "Forward"){
-      selected_players <- player_stats %>% 
+      selected_players <- player_stats %>%
         filter(fullName %in% input$forwardPlayers)
     } else if (cur_page == "Defenseman"){
-      selected_players <- player_stats %>% 
+      selected_players <- player_stats %>%
         filter(fullName %in% input$defenseman)
     } else{
-      selected_players <- goalie_stats %>% 
+      selected_players <- goalie_stats %>%
         filter(fullName %in% input$goalies)
     }
     return(selected_players)
   }
   
+  # Create points per season plot
   create_pts_plot <- function(players){
      pts_plot <- ggplotly(ggplot(data = players, aes(x=season, y=points, group = playerID, color = fullName)) +
-                geom_point(stat = 'summary', fun.y = sum) +
-                stat_summary(fun.y = sum, geom = "line") +
-                ggtitle("Season Point Totals") +
-                xlab("Season") +
-                ylab("Points") +
-                scale_color_brewer("Players", palette = "Spectral") +
-                theme_bw() +
-                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
-              tooltip = c("y", "colour"))
+                            geom_point(stat = 'summary', fun.y = sum) +
+                            stat_summary(fun.y = sum, geom = "line") +
+                            ggtitle("Season Point Totals") +
+                            xlab("Season") +
+                            ylab("Points") +
+                            scale_color_discrete("Players") +
+                            theme_bw() +
+                            theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                          tooltip = c("y", "colour"))
      return(pts_plot)
   }
   
-  current_page <- reactive(input$pages)
-  selected_players <- reactive(select_players(current_page()))
-  pts_plot <- reactive(create_pts_plot(selected_players()))
-  output$pts_plot1 <- output$pts_plot2 <- renderPlotly(pts_plot())
-
-   # observe(print(current_page()))
+  # Create games played per season plot  
+  create_gms_plot <- function(players){
+    gms_plot <- ggplotly(ggplot(data = players, aes(x=season, y=games, group = playerID, color = fullName)) +
+                           geom_point(stat = 'summary', fun.y = sum) +
+                           stat_summary(fun.y = sum, geom = "line") +
+                           ylab("# of Games Played") + 
+                           xlab("Season") +
+                           scale_color_discrete("Players") +
+                           theme_bw() +
+                           theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                         tooltip = c("colour", "y"))
+    return(gms_plot)
+  }
+  
+  # Create shooting percentage plot 
+  create_shot_perc_plot <- function(players){
+    shot_perc_plot <- ggplotly(players %>%  
+                                 mutate(shooting_perc = round(goals/shots,2)*100) %>% 
+                                 ggplot(aes(x=season, y=shooting_perc, group = playerID, color = fullName)) +
+                                   geom_point(stat = 'summary', fun.y = sum) +
+                                   stat_summary(fun.y = sum, geom = "line") +
+                                   ylab("Shooting Percentage(%)") + 
+                                   xlab("Season") +
+                                   scale_color_discrete("Players") +
+                                   theme_bw() +
+                                   theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                               tooltip = c("colour", "y"))
+    return(shot_perc_plot)
+  }
+  
+  
+  # Watch for page and selected players the user is on
+  selected_players <- reactive(select_players(input$pages))
+  
+  output$pts_plot_fwds <- output$pts_plot_def <-renderPlotly({
+    create_pts_plot(selected_players())
+  })
+  
+  output$gms_plot_fwds <- output$gms_plot_def <- renderPlotly({
+    create_gms_plot(selected_players())
+  })
+  
+  output$shot_perc_plot <- renderPlotly({
+    create_shot_perc_plot(selected_players())
+  })
+  
+  
 }
 
 # Run the application 
