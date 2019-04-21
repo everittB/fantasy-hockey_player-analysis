@@ -4,10 +4,10 @@ library(plotly)
 
 
 # Load data
-players <- read_delim("./data/players.txt", delim = ",")
-teams <- read_delim("./data/teams.txt", delim = ",")
-goalie_stats <- read_delim("./data/goalie_stats.txt", delim = ",")
-player_stats <- read_delim("./data/skaters_stats.txt", delim = ",") %>% 
+players <- read_delim("./data/players.txt", delim = ",", trim_ws = TRUE)
+teams <- read_delim("./data/teams.txt", delim = ",", trim_ws = TRUE)
+goalie_stats <- read_delim("./data/goalie_stats.txt", delim = ",", trim_ws = TRUE)
+player_stats <- read_delim("./data/skaters_stats.txt", delim = ",", trim_ws = TRUE) %>% 
   mutate(season = as.character(season)) %>% 
   mutate(season = as.character(str_replace(season, 
                                            str_sub(season, start = 5, end = 8), 
@@ -51,54 +51,51 @@ goalie_list <-  players %>%
 ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                  
   # Create forwards page
-  tabPanel("Forwards",
-   # Page layout
-   sidebarLayout(
-     sidebarPanel(
-       # Get user inputs for given page
-       selectInput("forwardPlayers",
-                   label = "Forwards",
-                   choices = forwards_list,
-                   multiple = TRUE)
-                   ),
-       # Show plots in main section
-       mainPanel(plotlyOutput("pts_plot1"))
-    ),
-   value = "Forward"
+  tabPanel("Forwards", value = "Forward",
+           
+    fluidPage(title = "Forwards",
+              
+      fluidRow(selectInput("forwardPlayers",
+                           label = "Forwards",
+                           choices = forwards_list,
+                           multiple = TRUE,
+                           width = "100%")
+              ),
+      
+      plotlyOutput("pts_plot1")
+    )
   ),
   
   # Create defense page
-  tabPanel("Defense",
-   # Page layout
-   sidebarLayout(
-     sidebarPanel(
-       # Get user inputs for given page
-       selectInput("defenseman",
-                   label = "Defenseman",
-                   choices = defense_list,
-                   multiple = TRUE)
-     ),
-     # Show plots in main section
-     mainPanel(plotlyOutput("pts_plot2"))
-   ),
-   value = "Defenseman"
+  tabPanel("Defense", value = "Defenseman", 
+           
+    fluidPage(title = "Defense",
+    
+      fluidRow(selectInput("defenseman",
+                           label = "Defenseman",
+                           choices = defense_list,
+                           multiple = TRUE,
+                           width = "100%")
+              ),
+      
+      plotlyOutput("pts_plot2")
+    )
   ),
   
   # Create goalies page
-  tabPanel("Goalies",
-    # Page layout
-    sidebarLayout(
-      sidebarPanel(
-        # Get user inputs for given page
-        selectInput("goalies",
-                    label = "Goalies",
-                    choices = goalie_list,
-                    multiple = TRUE)
-     ),
-     # Show plots in main section
-     mainPanel(plotlyOutput("pts_plot3"))
-   ),
-   value = "Goalie"
+  tabPanel("Goalies", value = "Goalie", 
+    
+    fluidPage(title = "Goalies",
+              
+      fluidRow(selectInput("goalies",
+                           label = "Goalies",
+                           choices = goalie_list,
+                           multiple = TRUE,
+                           width = "100%")
+      ),
+              
+              plotlyOutput("pts_plot3")
+    )
   )
 )
 
@@ -122,23 +119,24 @@ server <- function(input, output) {
     return(selected_players)
   }
   
+  create_pts_plot <- function(players){
+     pts_plot <- ggplotly(ggplot(data = players, aes(x=season, y=points, group = playerID, color = fullName)) +
+                geom_point(stat = 'summary', fun.y = sum) +
+                stat_summary(fun.y = sum, geom = "line") +
+                ggtitle("Season Point Totals") +
+                xlab("Season") +
+                ylab("Points") +
+                scale_color_brewer("Players", palette = "Spectral") +
+                theme_bw() +
+                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+              tooltip = c("y", "colour"))
+     return(pts_plot)
+  }
   
   current_page <- reactive(input$pages)
   selected_players <- reactive(select_players(current_page()))
-
-   
-  output$pts_plot1 <- output$pts_plot2 <- renderPlotly(
-   ggplotly(ggplot(data = selected_players(), aes(x=season, y=points, group = playerID, color = fullName)) +
-              geom_point(stat = 'summary', fun.y = sum) +
-              stat_summary(fun.y = sum, geom = "line") +
-              ggtitle("Season Point Totals") +
-              xlab("Season") + 
-              ylab("Points") + 
-              scale_color_brewer("Player", palette = "Spectral") +
-              theme_bw() +
-              theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)), 
-            tooltip = c("y", "colour"))
-  )
+  pts_plot <- reactive(create_pts_plot(selected_players()))
+  output$pts_plot1 <- output$pts_plot2 <- renderPlotly(pts_plot())
 
    # observe(print(current_page()))
 }
