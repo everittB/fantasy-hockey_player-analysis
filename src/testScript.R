@@ -14,7 +14,11 @@ goalie_stats <- read_delim("./hockey_analysis_app/data/goalie_stats.txt", delim 
                                            paste("/", str_sub(season, start = 7, end = 8), sep = "")
                                           )
                               )
-  )
+  ) %>% 
+  mutate(ot_losses = as.numeric(ot_losses)) %>% 
+  group_by(playerID, season) %>% 
+  summarise(games = sum(games), wins = sum(wins), losses = sum(losses),
+            ot_losses = sum(ot_losses, na.rm = TRUE), shutouts = sum(shutouts))
 
 player_stats <- read_delim("./hockey_analysis_app/data/skaters_stats.txt", delim = ",", trim_ws = TRUE) %>% 
   mutate(season = as.character(season)) %>% 

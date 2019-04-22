@@ -6,8 +6,22 @@ library(plotly)
 
 # Load data
 players <- read_delim("./data/players.txt", delim = ",", trim_ws = TRUE)
+
 teams <- read_delim("./data/teams.txt", delim = ",", trim_ws = TRUE)
-goalie_stats <- read_delim("./data/goalie_stats.txt", delim = ",", trim_ws = TRUE)
+
+# Data wrangling for goalies who played on multiple teams in a single year
+goalie_stats <- read_delim("./data/goalie_stats.txt", delim = ",", trim_ws = TRUE)%>% 
+  mutate(season = as.character(season)) %>% 
+  mutate(season = as.character(str_replace(season, 
+                                           str_sub(season, start = 5, end = 8), 
+                                           paste("/", str_sub(season, start = 7, end = 8), sep = "")
+                                          )
+                              )
+  ) %>% 
+  mutate(ot_losses = as.numeric(ot_losses)) %>% 
+  group_by(playerID, season) %>% 
+  summarise(games = sum(games), wins = sum(wins), losses = sum(losses),
+            ot_losses = sum(ot_losses, na.rm = TRUE), shutouts = sum(shutouts))
 
 # Data wrangling for players who played on multiple teams in a single year, dealing with TOI 
 player_stats <- read_delim("./data/skaters_stats.txt", delim = ",", trim_ws = TRUE) %>% 
