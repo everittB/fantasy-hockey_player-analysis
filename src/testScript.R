@@ -106,6 +106,22 @@ ggplotly(player_stats %>%
          tooltip = c("colour", "y")
 )
 
+ggplotly(goalie_stats %>% 
+           head(50) %>%
+           ggplot(aes(x=season, y=wins, group = playerID, color = fullName)) +
+           geom_point(stat = 'summary', fun.y = sum) +
+           stat_summary(fun.y = sum, geom = "line") +
+           ylab("# of Wins") + 
+           xlab("Season") +
+           scale_color_discrete("Players") +
+           theme_bw() +
+           theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+         tooltip = c("colour", "y")
+)
+
+
+)
+
 
   
   

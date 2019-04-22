@@ -95,7 +95,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
       
       h4("Points"),
       plotlyOutput("pts_plot_fwds"),
-      h4("Games"),
+      h4("Games Played"),
       plotlyOutput("gms_plot_fwds"),
       h4("Shooting Percentage"),
       plotlyOutput("shot_perc_plot")
@@ -116,7 +116,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
       
       h4("Points"),
       plotlyOutput("pts_plot_def"),
-      h4("Games"),
+      h4("Games Played"),
       plotlyOutput("gms_plot_def"),
       h4("Time on Ice"),
       plotlyOutput("avg_TOI_plot")
@@ -134,8 +134,15 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            multiple = TRUE,
                            width = "100%")
       ),
-              
-      plotlyOutput("pts_plot3")
+      
+      h4("Wins"),        
+      plotlyOutput("wins_plot"),
+      h4("Games Played"), 
+      plotlyOutput("gms_plot_goals"),
+      h4("Overtime Losses"),
+      plotlyOutput("ot_losses_plot"),
+      h4("Shutouts"),
+      plotlyOutput("shutouts_plot")
     )
   )
 )
@@ -219,6 +226,52 @@ server <- function(input, output) {
     return(avg_TOI_plot)
   }
   
+  # Create wins plot  
+  create_wins_plot <- function(players){
+    wins_plot <- ggplotly(players %>% 
+                           ggplot(aes(x=season, y=wins, group = playerID, color = fullName)) +
+                             geom_point(stat = 'summary', fun.y = sum) +
+                             stat_summary(fun.y = sum, geom = "line") +
+                             ylab("# of Wins") + 
+                             xlab("Season") +
+                             scale_color_discrete("Players") +
+                             theme_bw() +
+                             theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                         tooltip = c("colour", "y"))
+    return(wins_plot)
+    
+  }
+  
+  # Create overtime losses plot  
+  create_ot_losses_plot <- function(players){
+    ot_losses_plot <- ggplotly(players %>% 
+                                 ggplot(aes(x=season, y=ot_losses, group = playerID, color = fullName)) +
+                                   geom_point(stat = 'summary', fun.y = sum) +
+                                   stat_summary(fun.y = sum, geom = "line") +
+                                   ylab("# of Overtime Losses") + 
+                                   xlab("Season") +
+                                   scale_color_discrete("Players") +
+                                   theme_bw() +
+                                   theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                               tooltip = c("colour", "y"))
+    return(ot_losses_plot)
+  }
+  
+  # Create shutouts plot  
+  create_shutouts_plot <- function(players){
+    shutouts_plot <- ggplotly(players %>% 
+                                 ggplot(aes(x=season, y=shutouts, group = playerID, color = fullName)) +
+                                 geom_point(stat = 'summary', fun.y = sum) +
+                                 stat_summary(fun.y = sum, geom = "line") +
+                                 ylab("# of Overtime Losses") + 
+                                 xlab("Season") +
+                                 scale_color_discrete("Players") +
+                                 theme_bw() +
+                                 theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                               tooltip = c("colour", "y"))
+    return(shutouts_plot)
+  }
+  
   # Watch for page and selected players 
   selected_players <- reactive(select_players(input$pages))
   
@@ -226,7 +279,7 @@ server <- function(input, output) {
     create_pts_plot(selected_players())
   })
   
-  output$gms_plot_fwds <- output$gms_plot_def <- renderPlotly({
+  output$gms_plot_fwds <- output$gms_plot_def <- output$gms_plot_goals<- renderPlotly({
     create_gms_plot(selected_players())
   })
   
@@ -238,6 +291,17 @@ server <- function(input, output) {
     create_avg_TOI_plot(selected_players())
   })
   
+  output$wins_plot <- renderPlotly({
+    create_wins_plot(selected_players())
+  })
+  
+  output$ot_losses_plot <- renderPlotly({
+    create_ot_losses_plot(selected_players())
+  })
+  
+  output$shutouts_plot <- renderPlotly({
+    create_shutouts_plot(selected_players())
+  })
   
 }
 
