@@ -1,5 +1,6 @@
 library(shiny)
 library(tidyverse)
+library(lubridate)
 library(plotly)
 
 
@@ -7,6 +8,8 @@ library(plotly)
 players <- read_delim("./data/players.txt", delim = ",", trim_ws = TRUE)
 teams <- read_delim("./data/teams.txt", delim = ",", trim_ws = TRUE)
 goalie_stats <- read_delim("./data/goalie_stats.txt", delim = ",", trim_ws = TRUE)
+
+# Data wrangling for players who played on multiple teams in a single year, dealing with TOI 
 player_stats <- read_delim("./data/skaters_stats.txt", delim = ",", trim_ws = TRUE) %>% 
   mutate(season = as.character(season)) %>% 
   mutate(season = as.character(str_replace(season, 
@@ -14,7 +17,18 @@ player_stats <- read_delim("./data/skaters_stats.txt", delim = ",", trim_ws = TR
                                            paste("/", str_sub(season, start = 7, end = 8), sep = "")
                                            )
                               )
-        )
+        )%>% 
+  mutate(timeOnIce = ms(timeOnIce)) %>% 
+  mutate(secs = (minute(timeOnIce) * 60) + second(timeOnIce)) %>% 
+  group_by(playerID, season) %>% 
+  summarise(games = sum(games), secs = sum(secs), points = sum(points),
+            goals = sum(goals), assists = sum(assists), shots = sum(shots)) %>% 
+  mutate(mins = secs / 60) %>% 
+  mutate(timeOnIce = floor(mins) + ((mins %% 1) * 0.6))%>% 
+  mutate(avg_timeOnIce = mins/games) %>% 
+  mutate(avg_timeOnIce = round(floor(avg_timeOnIce) + ((avg_timeOnIce %% 1) * 0.6),2)) %>% 
+  mutate(shooting_perc = round(goals/shots,2)*100) %>% 
+  select(-mins, -secs)
 
 # Join players and their season statistics
 player_stats <- players %>% 
@@ -65,8 +79,11 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            width = "100%")
               ),
       
+      h4("Points"),
       plotlyOutput("pts_plot_fwds"),
+      h4("Games"),
       plotlyOutput("gms_plot_fwds"),
+      h4("Shooting Percentage"),
       plotlyOutput("shot_perc_plot")
     )
   ),
@@ -83,8 +100,12 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            width = "100%")
               ),
       
+      h4("Points"),
       plotlyOutput("pts_plot_def"),
-      plotlyOutput("gms_plot_def")
+      h4("Games"),
+      plotlyOutput("gms_plot_def"),
+      h4("Time on Ice"),
+      plotlyOutput("avg_TOI_plot")
     )
   ),
   
@@ -130,7 +151,7 @@ server <- function(input, output) {
      pts_plot <- ggplotly(ggplot(data = players, aes(x=season, y=points, group = playerID, color = fullName)) +
                             geom_point(stat = 'summary', fun.y = sum) +
                             stat_summary(fun.y = sum, geom = "line") +
-                            ggtitle("Season Point Totals") +
+                            ggtitle(label = "", subtitle = "Season Point Totals") +
                             xlab("Season") +
                             ylab("Points") +
                             scale_color_discrete("Players") +
@@ -157,7 +178,6 @@ server <- function(input, output) {
   # Create shooting percentage plot 
   create_shot_perc_plot <- function(players){
     shot_perc_plot <- ggplotly(players %>%  
-                                 mutate(shooting_perc = round(goals/shots,2)*100) %>% 
                                  ggplot(aes(x=season, y=shooting_perc, group = playerID, color = fullName)) +
                                    geom_point(stat = 'summary', fun.y = sum) +
                                    stat_summary(fun.y = sum, geom = "line") +
@@ -170,8 +190,23 @@ server <- function(input, output) {
     return(shot_perc_plot)
   }
   
+  # Create average TOI plot  
+  create_avg_TOI_plot <- function(players){
+    avg_TOI_plot <- ggplotly(players %>% 
+                               ggplot(aes(x=season, y=avg_timeOnIce, group = playerID, color = fullName)) +
+                               geom_point(stat = 'summary', fun.y = sum) +
+                               stat_summary(fun.y = sum, geom = "line") +
+                               ylab("Average TOI (minutes)") + 
+                               xlab("Season") +
+                               scale_color_discrete("Players") +
+                               theme_bw() +
+                               theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                             tooltip = c("colour", "y"))
+    return(avg_TOI_plot)
+  }
   
-  # Watch for page and selected players the user is on
+  
+  # Watch for page and selected players 
   selected_players <- reactive(select_players(input$pages))
   
   output$pts_plot_fwds <- output$pts_plot_def <-renderPlotly({
@@ -184,6 +219,10 @@ server <- function(input, output) {
   
   output$shot_perc_plot <- renderPlotly({
     create_shot_perc_plot(selected_players())
+  })
+  
+  output$avg_TOI_plot <- renderPlotly({
+    create_avg_TOI_plot(selected_players())
   })
   
   
