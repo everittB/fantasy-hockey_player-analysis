@@ -16,7 +16,7 @@ def getTeams():
 
     # Create team list
     team_ids = []
-    team_data = open("./data/teams.txt", "w")
+    team_data = open("./hockey_analysis_app/data/skaters_stats.txt", "w")
     team_data.write("team_id,team_name \n")
 
     # Get each team name and ID
@@ -32,7 +32,7 @@ def getTeams():
 def getPlayers(team_ids):
 
     player_ids = []
-    player_data = open("./data/players.txt", "w")
+    player_data = open("./hockey_analysis_app/data/skaters_stats.txt", "w")
     player_data.write("playerID,team_id,fullName,posType,position \n")
 
     # Get id, fullName, positionType, and Position for every player on each teams roster
@@ -55,11 +55,11 @@ def getPlayers(team_ids):
 def getPlayerStats(player_ids):
 
     # Create file for skaters statistics
-    skaters_stats = open("./data/skaters_stats.txt", "w")
+    skaters_stats = open("./hockey_analysis_app/data/skaters_stats.txt", "w")
     skaters_stats.write("playerID,season,games,timeOnIce,points,goals,assists,shots \n")
 
     # Create file for goalie statistics
-    goalie_stats = open("./data/goalie_stats.txt", "w")
+    goalie_stats = open("./hockey_analysis_app/data/goalie_stats.txt", "w")
     goalie_stats.write("playerID,season,games,wins,losses,ot_losses,shutouts \n")
 
     for player in player_ids:
@@ -98,7 +98,7 @@ def getPlayerStats(player_ids):
                                        str(player_stats[idx].get("stat").get("games")) + "," +
                                        str(player_stats[idx].get("stat").get("wins")) + "," +
                                        str(player_stats[idx].get("stat").get("losses")) + "," +
-                                       str(player_stats[idx].get("stat").get("ot_losses")) + "," +
+                                       str(player_stats[idx].get("stat").get("ot")) + "," +
                                        str(player_stats[idx].get("stat").get("shutouts")) + "\n"
                     )
 

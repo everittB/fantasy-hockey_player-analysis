@@ -4,8 +4,18 @@ library(lubridate)
 
 # Load data
 players <- read_delim("./hockey_analysis_app/data/players.txt", delim = ",", trim_ws = TRUE)
+
 teams <- read_delim("./hockey_analysis_app/data/teams.txt", delim = ",", trim_ws = TRUE)
-goalie_stats <- read_delim("./hockey_analysis_app/data/goalie_stats.txt", delim = ",", trim_ws = TRUE)
+
+goalie_stats <- read_delim("./hockey_analysis_app/data/goalie_stats.txt", delim = ",", trim_ws = TRUE)%>% 
+  mutate(season = as.character(season)) %>% 
+  mutate(season = as.character(str_replace(season, 
+                                           str_sub(season, start = 5, end = 8), 
+                                           paste("/", str_sub(season, start = 7, end = 8), sep = "")
+                                          )
+                              )
+  )
+
 player_stats <- read_delim("./hockey_analysis_app/data/skaters_stats.txt", delim = ",", trim_ws = TRUE) %>% 
   mutate(season = as.character(season)) %>% 
   mutate(season = as.character(str_replace(season, 

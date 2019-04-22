@@ -194,17 +194,16 @@ server <- function(input, output) {
   create_avg_TOI_plot <- function(players){
     avg_TOI_plot <- ggplotly(players %>% 
                                ggplot(aes(x=season, y=avg_timeOnIce, group = playerID, color = fullName)) +
-                               geom_point(stat = 'summary', fun.y = sum) +
-                               stat_summary(fun.y = sum, geom = "line") +
-                               ylab("Average TOI (minutes)") + 
-                               xlab("Season") +
-                               scale_color_discrete("Players") +
-                               theme_bw() +
-                               theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                                 geom_point(stat = 'summary', fun.y = sum) +
+                                 stat_summary(fun.y = sum, geom = "line") +
+                                 ylab("Average TOI (minutes)") + 
+                                 xlab("Season") +
+                                 scale_color_discrete("Players") +
+                                 theme_bw() +
+                                 theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
                              tooltip = c("colour", "y"))
     return(avg_TOI_plot)
   }
-  
   
   # Watch for page and selected players 
   selected_players <- reactive(select_players(input$pages))
