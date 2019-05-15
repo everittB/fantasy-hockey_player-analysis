@@ -7,6 +7,7 @@ create_pts_plot <- function(players){
                          xlab("Season") +
                          ylab("Points") +
                          scale_color_discrete("Players") +
+                         scale_y_continuous(limits = c(0, NA)) +
                          theme_bw() +
                          theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
                        tooltip = c("y", "colour"))
@@ -21,6 +22,7 @@ create_gms_plot <- function(players){
                          ylab("# of Games Played") + 
                          xlab("Season") +
                          scale_color_discrete("Players") +
+                         scale_y_continuous(limits = c(0, NA)) +
                          theme_bw() +
                          theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
                        tooltip = c("colour", "y"))
@@ -36,6 +38,7 @@ create_shot_perc_plot <- function(players){
                                ylab("Shooting Percentage(%)") + 
                                xlab("Season") +
                                scale_color_discrete("Players") +
+                               scale_y_continuous(limits = c(0, NA)) +
                                theme_bw() +
                                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
                              tooltip = c("colour", "y"))
@@ -51,6 +54,7 @@ create_avg_TOI_plot <- function(players){
                              ylab("Average TOI (minutes)") + 
                              xlab("Season") +
                              scale_color_discrete("Players") +
+                             scale_y_continuous(limits = c(0, NA)) +
                              theme_bw() +
                              theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
                            tooltip = c("colour", "y"))
@@ -66,6 +70,7 @@ create_wins_plot <- function(players){
                           ylab("# of Wins") + 
                           xlab("Season") +
                           scale_color_discrete("Players") +
+                          scale_y_continuous(limits = c(0, NA)) +
                           theme_bw() +
                           theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
                         tooltip = c("colour", "y"))
@@ -82,6 +87,7 @@ create_ot_losses_plot <- function(players){
                                ylab("# of Overtime Losses") + 
                                xlab("Season") +
                                scale_color_discrete("Players") +
+                               scale_y_continuous(limits = c(0, NA)) +
                                theme_bw() +
                                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
                              tooltip = c("colour", "y"))
@@ -97,6 +103,7 @@ create_shutouts_plot <- function(players){
                               ylab("# of Overtime Losses") + 
                               xlab("Season") +
                               scale_color_discrete("Players") +
+                              scale_y_continuous(limits = c(0, NA)) +
                               theme_bw() +
                               theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
                             tooltip = c("colour", "y"))
