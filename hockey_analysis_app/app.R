@@ -18,7 +18,7 @@ goalie_stats <- read_delim("./data/goalie_stats.txt", delim = ",", trim_ws = TRU
                                            paste("/", str_sub(season, start = 7, end = 8), sep = "")
                                           )
                               )
-  ) %>% 
+        ) %>% 
   mutate(ot_losses = as.numeric(ot_losses)) %>% 
   group_by(playerID, season) %>% 
   summarise(games = sum(games), wins = sum(wins), losses = sum(losses),
@@ -32,7 +32,7 @@ player_stats <- read_delim("./data/skaters_stats.txt", delim = ",", trim_ws = TR
                                            paste("/", str_sub(season, start = 7, end = 8), sep = "")
                                            )
                               )
-        )%>% 
+        ) %>% 
   mutate(timeOnIce = ms(timeOnIce)) %>% 
   mutate(secs = (minute(timeOnIce) * 60) + second(timeOnIce)) %>% 
   group_by(playerID, season) %>% 
@@ -86,7 +86,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
   # Create forwards page
   tabPanel("Forwards", value = "Forward",
            
-    fixedPage(title = "Forwards",
+    fluidPage(title = "Forwards",
               
       fluidRow(selectInput("forwardPlayers",
                            label = "Forwards",
@@ -96,19 +96,27 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            width = "100%")
               ),
       
-      h4("Points"),
-      plotlyOutput("pts_plot_fwds"),
-      h4("Games Played"),
-      plotlyOutput("gms_plot_fwds"),
-      h4("Shooting Percentage"),
-      plotlyOutput("shot_perc_plot")
+      fluidRow(
+        tabsetPanel(
+          tabPanel("Points", value = "fwd_pts",
+                   plotlyOutput("pts_plot_fwds")
+          ),
+          tabPanel("Shooting Percentage", value = "fwd_sht",
+                   plotlyOutput("shot_perc_plot")
+          ),
+          tabPanel("Games", value = "fwd_gms",
+                   plotlyOutput("gms_plot_fwds")
+          ),
+          id = "fwds"
+        )
+      )
     )
   ),
   
   # Create defense page
   tabPanel("Defense", value = "Defenseman", 
            
-   fixedPage(title = "Defense",
+   fluidPage(title = "Defense",
     
       fluidRow(selectInput("defenseman",
                            label = "Defenseman",
@@ -117,20 +125,27 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            selected = "Brent Burns",
                            width = "100%")
               ),
-      
-      h4("Points"),
-      plotlyOutput("pts_plot_def"),
-      h4("Games Played"),
-      plotlyOutput("gms_plot_def"),
-      h4("Time on Ice"),
-      plotlyOutput("avg_TOI_plot")
+      fluidRow(
+        tabsetPanel(
+          tabPanel("Points", value = "def_pts",
+                   plotlyOutput("pts_plot_def")
+          ),
+          tabPanel("Time on Ice", value = "def_toi",
+                   plotlyOutput("avg_TOI_plot")
+          ),
+          tabPanel("Games", value = "def_gms",
+                   plotlyOutput("gms_plot_def")
+          ),
+          id = "defs"
+        )
+      )
     )
   ),
   
   # Create goalies page
   tabPanel("Goalies", value = "Goalie", 
     
-    fixedPage(title = "Goalies",
+    fluidPage(title = "Goalies",
               
       fluidRow(selectInput("goalies",
                            label = "Goalies",
@@ -139,15 +154,23 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            selected = "Matt Murray",
                            width = "100%")
       ),
-      
-      h4("Wins"),        
-      plotlyOutput("wins_plot"),
-      h4("Games Played"), 
-      plotlyOutput("gms_plot_goals"),
-      h4("Overtime Losses"),
-      plotlyOutput("ot_losses_plot"),
-      h4("Shutouts"),
-      plotlyOutput("shutouts_plot")
+      fluidRow(
+        tabsetPanel(
+          tabPanel("Wins", value = "gol_wins",
+                   plotlyOutput("wins_plot")
+          ),
+          tabPanel("Games", value = "gol_gms",
+                   plotlyOutput("gms_plot_goals")
+          ),
+          tabPanel("Shutouts", value = "gol_sht",
+                   plotlyOutput("shutouts_plot")
+          ),
+          tabPanel("Overtime Losses", value = "gol_otl",
+                   plotlyOutput("ot_losses_plot")
+          ),
+          id = "defs"
+        )
+      )
     )
   )
 )
