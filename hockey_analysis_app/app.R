@@ -1,8 +1,13 @@
+# Define R Shiny App Server and Interface  
+# Brenden Everitt  
+
 library(shiny)
 library(tidyverse)
 library(lubridate)
 library(plotly)
+library(DT)
 
+# Load helper functions for creating plots 
 source("create_plots.R")
 
 
@@ -95,7 +100,6 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            selected = "Connor McDavid",
                            width = "100%")
               ),
-      
       fluidRow(
         tabsetPanel(
           tabPanel("Points", value = "fwd_pts",
@@ -109,6 +113,9 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
           ),
           id = "fwds"
         )
+      ),
+      fluidRow(
+        dataTableOutput("fwds_table") 
       )
     )
   ),
@@ -138,6 +145,9 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
           ),
           id = "defs"
         )
+      ),
+      fluidRow(
+        dataTableOutput("def_table") 
       )
     )
   ),
@@ -224,6 +234,26 @@ server <- function(input, output) {
   output$shutouts_plot <- renderPlotly({
     create_shutouts_plot(selected_players())
   })
+  
+  output$fwds_table <- output$def_table <-  renderDataTable(datatable(
+    player_stats %>%
+      filter(posType == input$pages) %>% 
+      select(fullName,
+             season,
+             games,
+             points,
+             timeOnIce,
+             shots),
+    colnames = c("Name" = "fullName",
+                 "Season" = "season",
+                 "Games" = "games",
+                 "Points" = "points",
+                 "TOI" = "timeOnIce",
+                 "Shots" = "shots"
+    ),
+    options = list(pageLength = 10)
+  )
+)
   
 }
 
