@@ -62,8 +62,9 @@ goalie_stats <- players %>%
   left_join(goalie_stats, by = c("playerID" = "playerID")) %>% 
   mutate(playerID = as.factor(playerID))  
 
+# Player comparison wrangling 
 player_comparison <- player_stats %>% 
-  filter(games > 20, posType == "Forward") %>% 
+  filter(games > 10) %>% 
   group_by(fullName, playerID, posType) %>% 
   summarise(pts_per_games = sum(points)/sum(games),
             total_games = sum(games))
@@ -94,8 +95,25 @@ goalie_list <-  players %>%
 # Define UI for application
 ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                  
+   # C
+  tabPanel("Home", value = "Home",
+           
+    fluidPage(title = "Player Comparison",
+              
+      tabsetPanel(
+        tabPanel("Forwards", value = "home_fwds", 
+                 plotlyOutput("fwds_comparison")),
+        tabPanel("Defense", value = "home_defs", 
+                 plotlyOutput("defs_comparison")),
+        tabPanel("Goalies", value = "home_gols"),
+        id = "home"
+        
+      )
+    )
+  ),  
+                 
   # Create forwards page
-  tabPanel("Forwards", value = "Forward",
+  tabPanel("Forward Analysis", value = "Forward",
            
     fluidPage(title = "Forwards",
               
@@ -127,7 +145,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
   ),
   
   # Create defense page
-  tabPanel("Defense", value = "Defenseman", 
+  tabPanel("Defense Analysis", value = "Defenseman", 
            
    fluidPage(title = "Defense",
     
@@ -159,7 +177,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
   ),
   
   # Create goalies page
-  tabPanel("Goalies", value = "Goalie", 
+  tabPanel("Goalie Analysis", value = "Goalie", 
     
     fluidPage(title = "Goalies",
               
@@ -198,26 +216,33 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
 # Define server logic required to make pages
 server <- function(input, output) {
   
-  # Select the players based off the current tab
-  select_players <- function(cur_page){
-    if (cur_page == "Forward"){
+  # Select the players based off the current page and tab
+  selected_players <- reactive({
+    if (input$pages == "Home"){
+      if (input$home == "home_fwds"){
+        selected_players <- player_comparison %>% 
+          filter(posType == "Forward")
+      }else if (input$home == "home_defs"){
+        selected_players <- player_comparison %>% 
+          filter(posType == "Defenseman")
+      }else if (input$home == "home_gols"){
+        
+      }
+    } else if (input$pages == "Forward"){
       selected_players <- player_stats %>%
         filter(fullName %in% input$forwardPlayers)
-    } else if (cur_page == "Defenseman"){
+    } else if (input$pages == "Defenseman"){
       selected_players <- player_stats %>%
         filter(fullName %in% input$defenseman)
-    } else{
+    } else if (input$pages == "Goalie"){
       selected_players <- goalie_stats %>%
         filter(fullName %in% input$goalies)
     }
     return(selected_players)
-  }
+  })
   
-  # Watch for page and selected players 
-  selected_players <- reactive(select_players(input$pages))
-  
-  output$fwds_comparison <- renderPlotly({
-    create_player_comparison_plot(player_comparison %>% filter(posType == input$pages))
+  output$fwds_comparison <- output$defs_comparison <- renderPlotly({
+    create_player_comparison_plot(selected_players())
   })
 
   output$pts_plot_fwds <- output$pts_plot_def <- renderPlotly({
