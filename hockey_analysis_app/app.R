@@ -117,7 +117,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
            
     fluidPage(title = "Forwards",
               
-      fluidRow(selectInput("forwardPlayers",
+      fluidRow(selectInput("forwards",
                            label = "Forwards",
                            choices = forwards_list,
                            multiple = TRUE,
@@ -230,7 +230,7 @@ server <- function(input, output) {
       }
     } else if (input$pages == "Forward"){
       selected_players <- player_stats %>%
-        filter(fullName %in% input$forwardPlayers)
+        filter(fullName %in% input$forwards)
     } else if (input$pages == "Defenseman"){
       selected_players <- player_stats %>%
         filter(fullName %in% input$defenseman)
@@ -275,7 +275,8 @@ server <- function(input, output) {
   
   output$fwds_table <- output$def_table <-  renderDataTable(datatable(
     player_stats %>%
-      filter(posType == input$pages) %>% 
+      filter(posType == input$pages & 
+               (fullName %in% input$forwards | fullName %in% input$defenseman)) %>% 
       select(fullName,
              season,
              games,
@@ -294,6 +295,7 @@ server <- function(input, output) {
 )
   output$gols_table <- renderDataTable(datatable(
    goalie_stats %>% 
+     filter(fullName %in% input$goalies) %>% 
      select(fullName,
             season,
             games,
