@@ -95,7 +95,7 @@ goalie_list <-  players %>%
 ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                  
   # Create forwards page
-  tabPanel("Forward Comparison", value = "Forward",
+  tabPanel("Forwards", value = "Forward",
            
     fluidPage(title = "Forwards",
               
@@ -127,7 +127,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
   ),
   
   # Create defense page
-  tabPanel("Defense Comparison", value = "Defenseman", 
+  tabPanel("Defense", value = "Defenseman", 
            
    fluidPage(title = "Defense",
     
@@ -159,7 +159,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
   ),
   
   # Create goalies page
-  tabPanel("Goalie Comparison", value = "Goalie", 
+  tabPanel("Goalies", value = "Goalie", 
     
     fluidPage(title = "Goalies",
               
