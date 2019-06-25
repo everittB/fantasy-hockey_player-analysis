@@ -1,15 +1,20 @@
+# Functions used to help run the Shiny App
+
 # Create points per season plot
 create_pts_plot <- function(players){
-  pts_plot <- ggplotly(ggplot(data = players, aes(x=season, y=points, group = playerID, color = fullName)) +
-                         geom_point(stat = 'summary', fun.y = sum) +
-                         stat_summary(fun.y = sum, geom = "line") +
-                         ggtitle(label = "", subtitle = "Season Point Totals") +
-                         xlab("Season") +
-                         ylab("Points") +
-                         scale_color_discrete("Players") +
-                         scale_y_continuous(limits = c(0, NA)) +
-                         theme_bw() +
-                         theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+  
+  pts_plot <- ggplot(data = players, aes(x=season, y=points, group = playerID, color = fullName)) +
+              geom_point(stat = 'summary', fun.y = sum) +
+              stat_summary(fun.y = sum, geom = "line") +
+              ggtitle(label = "", subtitle = "Season Point Totals") +
+              xlab("Season") +
+              ylab("Points") +
+              scale_color_discrete("Players") +
+              scale_y_continuous(limits = c(0, NA)) +
+              theme_bw() +
+              theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45))
+  
+  pts_plot <- ggplotly(pts_plot,
                        tooltip = c("y", "colour"))
   return(pts_plot)
 }
@@ -108,4 +113,16 @@ create_shutouts_plot <- function(players){
                               theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
                             tooltip = c("colour", "y"))
   return(shutouts_plot)
+} 
+
+create_player_comparison_plot <- function(players){
+  comparison_plot <- ggplotly(players %>%
+                               ggplot(aes(x=total_games, y = pts_per_games, label = fullName)) +
+                               geom_point(alpha = 0.5) +
+                               ylab("Points per Game") +
+                               xlab("Total Games Played") +
+                               theme_bw() +
+                               theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                              tooltip = "label")
+  return(comparison_plot)
 }

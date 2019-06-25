@@ -8,7 +8,7 @@ library(plotly)
 library(DT)
 
 # Load helper functions for creating plots 
-source("create_plots.R")
+source("./src/app_functions.R")
 
 
 # Load data
@@ -60,7 +60,13 @@ player_stats <- players %>%
 goalie_stats <- players %>% 
   filter(posType == "Goalie") %>% 
   left_join(goalie_stats, by = c("playerID" = "playerID")) %>% 
-  mutate(playerID = as.factor(playerID))
+  mutate(playerID = as.factor(playerID))  
+
+player_comparison <- player_stats %>% 
+  filter(games > 20, posType == "Forward") %>% 
+  group_by(fullName, playerID, posType) %>% 
+  summarise(pts_per_games = sum(points)/sum(games),
+            total_games = sum(games))
 
 
 # Get forwards player list  
@@ -180,6 +186,9 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
           ),
           id = "defs"
         )
+      ),
+      fluidRow(
+        dataTableOutput("gols_table") 
       )
     )
   )
@@ -189,9 +198,6 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
 # Define server logic required to make pages
 server <- function(input, output) {
   
-  # Watch for page and selected players 
-  selected_players <- reactive(select_players(input$pages))
-
   # Select the players based off the current tab
   select_players <- function(cur_page){
     if (cur_page == "Forward"){
@@ -206,6 +212,13 @@ server <- function(input, output) {
     }
     return(selected_players)
   }
+  
+  # Watch for page and selected players 
+  selected_players <- reactive(select_players(input$pages))
+  
+  output$fwds_comparison <- renderPlotly({
+    create_player_comparison_plot(player_comparison %>% filter(posType == input$pages))
+  })
 
   output$pts_plot_fwds <- output$pts_plot_def <- renderPlotly({
     create_pts_plot(selected_players())
@@ -252,6 +265,26 @@ server <- function(input, output) {
                  "Shots" = "shots"
     ),
     options = list(pageLength = 10)
+  )
+)
+  output$gols_table <- renderDataTable(datatable(
+   goalie_stats %>% 
+     select(fullName,
+            season,
+            games,
+            wins,
+            losses,
+            ot_losses,
+            shutouts),
+   colnames = c("Name" = "fullName",
+                "Season" = "season",
+                "Games" = "games",
+                "Wins" = "wins",
+                "Losses" = "losses",
+                "OTL" = "ot_losses",
+                "Shutouts" = "shutouts"
+   ),
+   options = list(pageLength = 10)
   )
 )
   
