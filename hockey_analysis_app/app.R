@@ -67,7 +67,15 @@ player_comparison <- player_stats %>%
   filter(games > 10) %>% 
   group_by(fullName, playerID, posType) %>% 
   summarise(pts_per_games = sum(points)/sum(games),
+            total_games = sum(games))  
+
+# Goalie comparison wrangling 
+goalie_comparison <- goalie_stats %>% 
+  filter(games > 10) %>% 
+  group_by(fullName, playerID) %>% 
+  summarise(winning_perc = sum(wins)/sum(games),
             total_games = sum(games))
+
 
 
 # Get forwards player list  
@@ -105,7 +113,8 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                  plotlyOutput("fwds_comparison")),
         tabPanel("Defense", value = "home_defs", 
                  plotlyOutput("defs_comparison")),
-        tabPanel("Goalies", value = "home_gols"),
+        tabPanel("Goalies", value = "home_gols",
+                 plotlyOutput("gols_comparison")),
         id = "home"
         
       )
@@ -226,7 +235,7 @@ server <- function(input, output) {
         selected_players <- player_comparison %>% 
           filter(posType == "Defenseman")
       }else if (input$home == "home_gols"){
-        
+        selected_players <- goalie_comparison
       }
     } else if (input$pages == "Forward"){
       selected_players <- player_stats %>%
@@ -243,6 +252,10 @@ server <- function(input, output) {
   
   output$fwds_comparison <- output$defs_comparison <- renderPlotly({
     create_player_comparison_plot(selected_players())
+  })  
+  
+  output$gols_comparison <- renderPlotly({
+    create_goalie_comparison_plot(selected_players())
   })
 
   output$pts_plot_fwds <- output$pts_plot_def <- renderPlotly({

@@ -126,3 +126,15 @@ create_player_comparison_plot <- function(players){
                               tooltip = "label")
   return(comparison_plot)
 }
+  
+create_goalie_comparison_plot <- function(players){
+  comparison_plot <- ggplotly(players %>%
+                                ggplot(aes(x=total_games, y = winning_perc, label = fullName)) +
+                                geom_point(alpha = 0.5) +
+                                ylab("Winning Percentage") +
+                                xlab("Total Games Played") +
+                                theme_bw() +
+                                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                              tooltip = "label")
+  return(comparison_plot)
+}
