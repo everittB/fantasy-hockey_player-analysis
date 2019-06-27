@@ -110,7 +110,8 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
               
       tabsetPanel(
         tabPanel("Forwards", value = "home_fwds", 
-                 plotlyOutput("fwds_comparison")),
+                 plotlyOutput("fwds_comparison"),
+                 dataTableOutput("selected_players")),
         tabPanel("Defense", value = "home_defs", 
                  plotlyOutput("defs_comparison")),
         tabPanel("Goalies", value = "home_gols",
@@ -262,7 +263,7 @@ server <- function(input, output) {
     create_pts_plot(selected_players())
   })
 
-  output$gms_plot_fwds <- output$gms_plot_def <- output$gms_plot_goals<- renderPlotly({
+  output$gms_plot_fwds <- output$gms_plot_def <- output$gms_plot_goals <- renderPlotly({
     create_gms_plot(selected_players())
   })
 
@@ -284,6 +285,14 @@ server <- function(input, output) {
 
   output$shutouts_plot <- renderPlotly({
     create_shutouts_plot(selected_players())
+  })
+  
+  
+  # TMP
+  output$selected_players <- renderDataTable({
+    event.data = event_data("plotly_brushed", source = "brushed")
+    
+    datatable(event.data)
   })
   
   output$fwds_table <- output$def_table <-  renderDataTable(datatable(

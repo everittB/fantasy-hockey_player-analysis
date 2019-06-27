@@ -1,5 +1,6 @@
 library(tidyverse)
 library(lubridate)
+library(plotly)
 
 
 # Load data
@@ -21,7 +22,7 @@ goalie_stats <- read_delim("./hockey_analysis_app/data/goalie_stats.txt", delim 
             ot_losses = sum(ot_losses, na.rm = TRUE), shutouts = sum(shutouts))
 
 # Data wrangling for players who played on multiple teams in a single year, dealing with TOI 
-player_stats <- read_delim("./data/skaters_stats.txt", delim = ",", trim_ws = TRUE) %>% 
+player_stats <- read_delim("./hockey_analysis_app/data/skaters_stats.txt", delim = ",", trim_ws = TRUE) %>% 
   mutate(season = as.character(season)) %>% 
   mutate(season = as.character(str_replace(season, 
                                            str_sub(season, start = 5, end = 8), 
@@ -68,7 +69,18 @@ goalie_comparison <- goalie_stats %>%
             total_games = sum(games))
 
 
+comparison_plot <- ggplotly(player_comparison %>%
+                              ggplot(aes(x=total_games, y = pts_per_games, label = fullName)) +
+                              geom_point(alpha = 0.5) +
+                              ylab("Points per Game") +
+                              xlab("Total Games Played") +
+                              theme_bw() +
+                              theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45)),
+                            tooltip = "label",
+                            dynamicTicks = TRUE)
+comparison_plot
+highlight(comparison_plot, on = "plotly_selected", selectize = TRUE)
+
   
-  
-  
-  
+tmp
+tmp
