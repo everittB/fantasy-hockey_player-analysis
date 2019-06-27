@@ -103,25 +103,6 @@ goalie_list <-  players %>%
 # Define UI for application
 ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                  
-   # C
-  tabPanel("Home", value = "Home",
-           
-    fluidPage(title = "Player Comparison",
-              
-      tabsetPanel(
-        tabPanel("Forwards", value = "home_fwds", 
-                 plotlyOutput("fwds_comparison"),
-                 dataTableOutput("selected_players")),
-        tabPanel("Defense", value = "home_defs", 
-                 plotlyOutput("defs_comparison")),
-        tabPanel("Goalies", value = "home_gols",
-                 plotlyOutput("gols_comparison")),
-        id = "home"
-        
-      )
-    )
-  ),  
-                 
   # Create forwards page
   tabPanel("Forward Analysis", value = "Forward",
            
@@ -136,6 +117,9 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
               ),
       fluidRow(
         tabsetPanel(
+          tabPanel("Comparison", value = "comparison", 
+                   plotlyOutput("fwds_comparison")
+          ),
           tabPanel("Points", value = "fwd_pts",
                    plotlyOutput("pts_plot_fwds")
           ),
@@ -168,6 +152,9 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
               ),
       fluidRow(
         tabsetPanel(
+          tabPanel("Comparison", value = "comparison", 
+                   plotlyOutput("defs_comparison")
+          ),
           tabPanel("Points", value = "def_pts",
                    plotlyOutput("pts_plot_def")
           ),
@@ -200,6 +187,9 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
       ),
       fluidRow(
         tabsetPanel(
+          tabPanel("Comparison", value = "comparison",
+                   plotlyOutput("gols_comparison")
+          ),
           tabPanel("Wins", value = "gol_wins",
                    plotlyOutput("wins_plot")
           ),
@@ -212,7 +202,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
           tabPanel("Overtime Losses", value = "gol_otl",
                    plotlyOutput("ot_losses_plot")
           ),
-          id = "defs"
+          id = "gols"
         )
       ),
       fluidRow(
@@ -224,32 +214,55 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
 
 
 # Define server logic required to make pages
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   # Select the players based off the current page and tab
   selected_players <- reactive({
-    if (input$pages == "Home"){
-      if (input$home == "home_fwds"){
+    if (input$pages == "Forward"){
+      if (input$fwds == "comparison"){
         selected_players <- player_comparison %>% 
-          filter(posType == "Forward")
-      }else if (input$home == "home_defs"){
-        selected_players <- player_comparison %>% 
-          filter(posType == "Defenseman")
-      }else if (input$home == "home_gols"){
-        selected_players <- goalie_comparison
+          filter(posType == input$pages)
+      } else{
+        selected_players <- player_stats %>%
+          filter(fullName %in% input$forwards)
       }
-    } else if (input$pages == "Forward"){
-      selected_players <- player_stats %>%
-        filter(fullName %in% input$forwards)
     } else if (input$pages == "Defenseman"){
-      selected_players <- player_stats %>%
-        filter(fullName %in% input$defenseman)
+      if (input$defs == "comparison"){
+        selected_players <- player_comparison %>% 
+          filter(posType == input$pages)
+      } else {
+        selected_players <- player_stats %>%
+          filter(fullName %in% input$defenseman)
+      }
     } else if (input$pages == "Goalie"){
-      selected_players <- goalie_stats %>%
-        filter(fullName %in% input$goalies)
+      if (input$gols == "comparison"){
+        selected_players <- goalie_comparison
+      } else{
+        selected_players <- goalie_stats %>%
+          filter(fullName %in% input$goalies)
+      }
     }
     return(selected_players)
   })
+  
+  observe({
+    brushed = event_data("plotly_selected", source = "brushed",priority = "event")
+    
+    if (is.null(brushed)){
+      # Do nothing
+    } else {
+      players <- selected_players()[brushed[["pointNumber"]]+1,] %>% 
+        pull(fullName)
+      
+      updateSelectInput(session,
+                        "forwards",
+                        selected = players)
+      
+      print(input$forwards)
+    }
+  })
+  
+  
   
   output$fwds_comparison <- output$defs_comparison <- renderPlotly({
     create_player_comparison_plot(selected_players())
@@ -285,17 +298,6 @@ server <- function(input, output) {
 
   output$shutouts_plot <- renderPlotly({
     create_shutouts_plot(selected_players())
-  })
-  
-  
-  observe({
-    event.data = event_data("plotly_selected", source = "brushed")
-    
-    if (is.null(event.data)){
-      print(event.data)
-    } else {
-      print(selected_players()[event.data[["pointNumber"]]+1,])
-    }
   })
   
   output$fwds_table <- output$def_table <-  renderDataTable(datatable(
