@@ -288,11 +288,14 @@ server <- function(input, output) {
   })
   
   
-  # TMP
-  output$selected_players <- renderDataTable({
-    event.data = event_data("plotly_brushed", source = "brushed")
+  observe({
+    event.data = event_data("plotly_selected", source = "brushed")
     
-    datatable(event.data)
+    if (is.null(event.data)){
+      print(event.data)
+    } else {
+      print(selected_players()[event.data[["pointNumber"]]+1,])
+    }
   })
   
   output$fwds_table <- output$def_table <-  renderDataTable(datatable(
