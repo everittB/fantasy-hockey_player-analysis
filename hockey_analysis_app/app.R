@@ -239,6 +239,10 @@ server <- function(input, output, session) {
           filter(fullName %in% input$goalies)
       }
     }
+    
+    validate(
+      need(nrow(selected_players) != 0, "Select players for comparison")
+    )
     return(selected_players)
   })
   
@@ -252,8 +256,7 @@ server <- function(input, output, session) {
         pull(fullName)}
   })
 
-  observe(print(brushed_players()))
-
+  # Update selected players based on brushed
   observeEvent(brushed_players(),
                if(is.null(players)){
                  # Do nothing
