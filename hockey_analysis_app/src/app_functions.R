@@ -161,7 +161,7 @@ create_goalie_comparison_plot <- function(players){
                               dynamicTicks = TRUE,
                               source = "brushed")
   
-  comparison_plot <- comparison_plot %>% layout(dragmode = FALSE)
+  comparison_plot <- comparison_plot %>% layout(dragmode = "select")
   
   return(comparison_plot)
 }

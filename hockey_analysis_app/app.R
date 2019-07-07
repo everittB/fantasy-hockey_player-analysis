@@ -112,7 +112,6 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            label = "Forwards",
                            choices = forwards_list,
                            multiple = TRUE,
-                           selected = "Connor McDavid",
                            width = "100%")
               ),
       fluidRow(
@@ -147,7 +146,6 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            label = "Defenseman",
                            choices = defense_list,
                            multiple = TRUE,
-                           selected = "Brent Burns",
                            width = "100%")
               ),
       fluidRow(
@@ -182,7 +180,6 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
                            label = "Goalies",
                            choices = goalie_list,
                            multiple = TRUE,
-                           selected = "Matt Murray",
                            width = "100%")
       ),
       fluidRow(
@@ -216,7 +213,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
 # Define server logic required to make pages
 server <- function(input, output, session) {
   
-  # Select the players based off the current page and tab
+  # Player selection based on input and tabs
   selected_players <- reactive({
     if (input$pages == "Forward"){
       if (input$fwds == "comparison"){
@@ -245,25 +242,38 @@ server <- function(input, output, session) {
     return(selected_players)
   })
   
-  observe({
-    brushed = event_data("plotly_selected", source = "brushed",priority = "event")
-    
-    if (is.null(brushed)){
-      # Do nothing
-    } else {
-      players <- selected_players()[brushed[["pointNumber"]]+1,] %>% 
-        pull(fullName)
-      
-      updateSelectInput(session,
-                        "forwards",
-                        selected = players)
-      
-      print(input$forwards)
-    }
+  # Watch for brush selection
+  brushed_players <- reactive({
+    if ((input$pages == "Forward" & input$fwds == "comparison") | 
+        (input$pages == "Defenseman" & input$defs == "comparison") |
+        (input$pages == "Goalie" & input$gols == "comparison")){
+      players <- event_data("plotly_selected", source = "brushed", priority = "input")
+      selected_players()[players[["pointNumber"]]+1,] %>%
+        pull(fullName)}
   })
-  
-  
-  
+
+  observe(print(brushed_players()))
+
+  observeEvent(brushed_players(),
+               if(is.null(players)){
+                 # Do nothing
+               } else{
+                 if (input$pages == "Forward"){
+                   updateSelectInput(session,
+                                     inputId = "forwards",
+                                     selected = brushed_players()) 
+                 } else if (input$pages =="Defenseman"){
+                   updateSelectInput(session,
+                                     inputId = "defenseman",
+                                     selected = brushed_players()) 
+                 } else if (input$pages =="Goalie"){
+                   updateSelectInput(session,
+                                     inputId = "goalies",
+                                     selected = brushed_players()) 
+                 }
+               }
+               )
+
   output$fwds_comparison <- output$defs_comparison <- renderPlotly({
     create_player_comparison_plot(selected_players())
   })  
