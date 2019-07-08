@@ -128,7 +128,8 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
           tabPanel("Games", value = "fwd_gms",
                    plotlyOutput("gms_plot_fwds")
           ),
-          id = "fwds"
+          id = "fwds",
+          selected = "comparison"
         )
       ),
       fluidRow(
@@ -162,7 +163,8 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
           tabPanel("Games", value = "def_gms",
                    plotlyOutput("gms_plot_def")
           ),
-          id = "defs"
+          id = "defs",
+          selected = "comparison"
         )
       ),
       fluidRow(
@@ -199,7 +201,8 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
           tabPanel("Overtime Losses", value = "gol_otl",
                    plotlyOutput("ot_losses_plot")
           ),
-          id = "gols"
+          id = "gols",
+          selected = "comparison"
         )
       ),
       fluidRow(
@@ -213,7 +216,7 @@ ui <- navbarPage("Fantasy Hockey Analysis", id="pages",
 # Define server logic required to make pages
 server <- function(input, output, session) {
   
-  # Player selection based on input and tabs
+  # Player selection based on selection box
   selected_players <- reactive({
     if (input$pages == "Forward"){
       if (input$fwds == "comparison"){
@@ -251,12 +254,12 @@ server <- function(input, output, session) {
     if ((input$pages == "Forward" & input$fwds == "comparison") | 
         (input$pages == "Defenseman" & input$defs == "comparison") |
         (input$pages == "Goalie" & input$gols == "comparison")){
-      players <- event_data("plotly_selected", source = "brushed", priority = "input")
+      players <- event_data("plotly_selected", source = "brushed", priority = "event")
       selected_players()[players[["pointNumber"]]+1,] %>%
         pull(fullName)}
   })
-
-  # Update selected players based on brushed
+  
+  # Update selected players based on brush selection
   observeEvent(brushed_players(),
                if(is.null(players)){
                  # Do nothing
@@ -264,7 +267,7 @@ server <- function(input, output, session) {
                  if (input$pages == "Forward"){
                    updateSelectInput(session,
                                      inputId = "forwards",
-                                     selected = brushed_players()) 
+                                     selected = brushed_players())
                  } else if (input$pages =="Defenseman"){
                    updateSelectInput(session,
                                      inputId = "defenseman",
