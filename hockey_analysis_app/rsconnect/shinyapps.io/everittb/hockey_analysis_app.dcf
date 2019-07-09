@@ -1,0 +1,12 @@
+name: hockey_analysis_app
+title: hockey_analysis_app
+username:
+account: everittb
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1020210
+bundleId: 2215766
+url: https://everittb.shinyapps.io/hockey_analysis_app/
+when: 1562700964.07203
+asMultiple: FALSE
+asStatic: FALSE
