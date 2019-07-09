@@ -249,37 +249,42 @@ server <- function(input, output, session) {
     return(selected_players)
   })
   
-  # Watch for brush selection
-  brushed_players <- reactive({
-    if ((input$pages == "Forward" & input$fwds == "comparison") | 
-        (input$pages == "Defenseman" & input$defs == "comparison") |
-        (input$pages == "Goalie" & input$gols == "comparison")){
-      players <- event_data("plotly_selected", source = "brushed", priority = "event")
-      selected_players()[players[["pointNumber"]]+1,] %>%
-        pull(fullName)}
-  })
+  # Watch for plot interactions
+  brush_event <- reactive(event_data("plotly_selected", source = "brushed", priority = "event"))
+  deselect_event <- reactive(event_data("plotly_deselect", source = "brushed", priority = "event"))
+  brushed_players <- reactiveVal()
+  
+  # Brush selection
+  observeEvent(brush_event(),
+               brushed_players(selected_players()[brush_event()[["pointNumber"]]+1,] %>% 
+                                 pull(fullName)))
+  # Clear brush selection
+  observeEvent(deselect_event(),
+               brushed_players(''),
+               ignoreNULL = FALSE)
+  
+  observe(print(brushed_players()))
   
   # Update selected players based on brush selection
   observeEvent(brushed_players(),
-               if(is.null(players)){
-                 # Do nothing
-               } else{
-                 if (input$pages == "Forward"){
-                   updateSelectInput(session,
-                                     inputId = "forwards",
-                                     selected = brushed_players())
-                 } else if (input$pages =="Defenseman"){
-                   updateSelectInput(session,
-                                     inputId = "defenseman",
-                                     selected = brushed_players()) 
-                 } else if (input$pages =="Goalie"){
-                   updateSelectInput(session,
-                                     inputId = "goalies",
-                                     selected = brushed_players()) 
-                 }
-               }
+               if (input$pages == "Forward"){
+                 updateSelectInput(session,
+                                   inputId = "forwards",
+                                   selected = brushed_players())
+                } else if (input$pages =="Defenseman"){
+                  updateSelectInput(session,
+                                    inputId = "defenseman",
+                                    selected = brushed_players())
+                } else if (input$pages =="Goalie"){
+                  updateSelectInput(session,
+                                    inputId = "goalies",
+                                    selected = brushed_players())
+                },
+               ignoreNULL = FALSE
                )
 
+  
+  # Create and render plots and data tables
   output$fwds_comparison <- output$defs_comparison <- renderPlotly({
     create_player_comparison_plot(selected_players())
   })  
