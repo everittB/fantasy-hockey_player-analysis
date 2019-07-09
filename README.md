@@ -28,7 +28,5 @@ Creating an application that pulls NHL stats and creates an interactive visualiz
 2. Open a terminal window
 3. Navigate to `fantasy-hockey_player-analysis/`
 4. *Optionally run: `python src/get_stats.py` in the terminal window*  
-  - Updates player statistics  
-5. Navigate to `hockey_analysis_app/`  
-6. Run `Rscript app.R` in the terminal window  
-7. Open an internet browser and navigate to the url shown in the terminal window  `http://_________`  
+  - Updates player statistics   
+6. Run ` Rscript src/launch_app.R` in the terminal window  
