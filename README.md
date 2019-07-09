@@ -1,8 +1,17 @@
 ## Fantasy Hockey Player Analysis  
 
-Creating an application that pulls NHL stats and creates an interactive visualization to analysis player statistics.  
+Creating an application that pulls NHL stats and creates an interactive visualization to analysis player statistics.
 
-### Pre-requisites  
+![screenshot](./imgs/app_screenshot.JPG)
+
+## Usage  
+
+### Shiny Server  
+The hosted Shiny Application can be found [here](https://everittb.shinyapps.io/hockey_analysis_app/).  
+
+### Local Machine
+
+#### Pre-requisites  
 **R version 3.5.0**  
 
 | Packages | Version |
@@ -23,7 +32,7 @@ Creating an application that pulls NHL stats and creates an interactive visualiz
 
 **Python version 3.6.5**  
 
-### Usage Instructions  
+#### Setup Instructions  
 1. Clone this repository  
 2. Open a terminal window
 3. Navigate to `fantasy-hockey_player-analysis/`
