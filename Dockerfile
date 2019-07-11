@@ -2,7 +2,7 @@
 # Brenden Everitt
 # July 2019
 
-# Use rocker/tidyverse as the base image
+# Use rocker/shiny-verse as the base image
 FROM rocker/shiny-verse
 
 # Install additional R package dependencies
