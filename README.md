@@ -38,19 +38,17 @@ The hosted Shiny Application can be found [here](https://everittb.shinyapps.io/h
 1. Open a terminal window
 2. Navigate to `fantasy-hockey_player-analysis/`
 3. *Optionally run:* `python src/get_stats.py` *in the terminal window*  
-  - Updates player statistics   
+   - Updates player statistics   
 4. Run ` Rscript src/launch_app.R` in the terminal window
 
 #### Docker container  
 1. Get the Docker Image by either:  
-
-  1. Navigating to `fantasy-hockey_player-analysis/` and run `docker build -t fantasy-hocker_player-analysis .` in the terminal window  
-  2. Run `docker pull everittb/fantasy-hockey_player-analysis`  
-
+   1. Navigating to `fantasy-hockey_player-analysis/` and run `docker build -t fantasy-hocker_player-analysis .` in the terminal window  
+   2. Run `docker pull everittb/fantasy-hockey_player-analysis`  
 2. Run `winpty docker run --rm -p 3838:3838 -v <local_path>/fantasy-hockey_player-analysis:/srv/shiny-server/ fantasy-hockey_player-analysis` in the terminal window  
-  - `<local_path>`: local file path to cloned repository
+   - `<local_path>`: local file path to cloned repository
 3. You can view R Shiny Application app can visiting: `http://localhost:3838/hockey_analysis_app/`  
 4. To stop the R Shiny Application:  
-  1. Run `docker images ps -a`  
-  2. Run `docker stop <container_id>`  
-    - `<container_id>`: CONTAINER ID of the running `fantasy-hocker_player-analysis` docker image
+   1. Run `docker images ps -a`  
+   2. Run `docker stop <container_id>`  
+      - `<container_id>`: CONTAINER ID of the running `fantasy-hocker_player-analysis` docker image
