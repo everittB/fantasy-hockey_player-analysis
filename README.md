@@ -10,7 +10,8 @@ Creating an application that pulls NHL stats and creates an interactive visualiz
 The hosted Shiny Application can be found [here](https://everittb.shinyapps.io/hockey_analysis_app/).  
 
 ### Local Machine
- - Clone this repository
+ - Clone this repository  
+ ![screenshot](./imgs/clone_screenshot.JPG)
 
 #### Pre-requisites  
 **R version 3.5.0**  
