@@ -1,14 +1,24 @@
-import urllib.request
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
 import json
+from time import sleep
 
 # Requests data using the NHL.com API
 def getFeed(req):
 
     nhl_api_base = "https://statsapi.web.nhl.com/api/v1/"
     url = nhl_api_base + req
-    request = urllib.request.Request(url)
-    response = urllib.request.urlopen(request)
-    return json.loads(response.read().decode())
+    request = Request(url)
+
+    try:
+        response = urlopen(request)
+
+    except HTTPError:
+        raise
+        
+    else:
+        sleep(0.2)
+        return json.loads(response.read().decode())
 
 def getTeams():
 
@@ -65,42 +75,47 @@ def getPlayerStats(player_ids):
     for player in player_ids:
 
         # Request player info
-        player_stats = getFeed("people/" + str(player) + "?hydrate=stats(splits=yearByYear)").get("people")[0]
+        try:
+            player_stats = getFeed("people/" + str(player) + "?hydrate=stats(splits=yearByYear)").get("people")[0]
 
-        # Check to see of the player is a goalie
-        if player_stats.get("primaryPosition").get("type") != "Goalie":
+        except HTTPError:
+            print(HTTPError, "people/" + str(player) + "?hydrate=stats(splits=yearByYear)")
 
-            player_stats = player_stats.get("stats")[0].get("splits")
-
-            # Only get NHL sesason stats
-            for idx in range(len(player_stats)):
-                if player_stats[idx].get("league").get("name") == "National Hockey League":
-                    skaters_stats.write(str(player) + "," +
-                                       str(player_stats[idx].get("season")) + "," +
-                                       str(player_stats[idx].get("stat").get("games")) + "," +
-                                       str(player_stats[idx].get("stat").get("timeOnIce")) + "," +
-                                       str(player_stats[idx].get("stat").get("points")) + "," +
-                                       str(player_stats[idx].get("stat").get("goals")) + "," +
-                                       str(player_stats[idx].get("stat").get("assists")) + "," +
-                                       str(player_stats[idx].get("stat").get("shots")) + "\n"
-                    )
-
-        # Get goalie statistics
         else:
+            # Check to see of the player is a goalie
+            if player_stats.get("primaryPosition").get("type") != "Goalie":
 
-            player_stats = player_stats["stats"][0]["splits"]
+                player_stats = player_stats.get("stats")[0].get("splits")
 
-            # Only get NHL sesason stats
-            for idx in range(len(player_stats)):
-                if player_stats[idx].get("league").get("name") == "National Hockey League":
-                    goalie_stats.write(str(player) + "," +
-                                       str(player_stats[idx].get("season")) + "," +
-                                       str(player_stats[idx].get("stat").get("games")) + "," +
-                                       str(player_stats[idx].get("stat").get("wins")) + "," +
-                                       str(player_stats[idx].get("stat").get("losses")) + "," +
-                                       str(player_stats[idx].get("stat").get("ot")) + "," +
-                                       str(player_stats[idx].get("stat").get("shutouts")) + "\n"
-                    )
+                # Only get NHL sesason stats
+                for idx in range(len(player_stats)):
+                    if player_stats[idx].get("league").get("name") == "National Hockey League":
+                        skaters_stats.write(str(player) + "," +
+                                           str(player_stats[idx].get("season")) + "," +
+                                           str(player_stats[idx].get("stat").get("games")) + "," +
+                                           str(player_stats[idx].get("stat").get("timeOnIce")) + "," +
+                                           str(player_stats[idx].get("stat").get("points")) + "," +
+                                           str(player_stats[idx].get("stat").get("goals")) + "," +
+                                           str(player_stats[idx].get("stat").get("assists")) + "," +
+                                           str(player_stats[idx].get("stat").get("shots")) + "\n"
+                        )
+
+            # Get goalie statistics
+            else:
+
+                player_stats = player_stats["stats"][0]["splits"]
+
+                # Only get NHL sesason stats
+                for idx in range(len(player_stats)):
+                    if player_stats[idx].get("league").get("name") == "National Hockey League":
+                        goalie_stats.write(str(player) + "," +
+                                           str(player_stats[idx].get("season")) + "," +
+                                           str(player_stats[idx].get("stat").get("games")) + "," +
+                                           str(player_stats[idx].get("stat").get("wins")) + "," +
+                                           str(player_stats[idx].get("stat").get("losses")) + "," +
+                                           str(player_stats[idx].get("stat").get("ot")) + "," +
+                                           str(player_stats[idx].get("stat").get("shutouts")) + "\n"
+                        )
 
     skaters_stats.close()
     goalie_stats.close()
